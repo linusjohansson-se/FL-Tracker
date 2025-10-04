@@ -13,4 +13,7 @@ public sealed class UpdateGameStatCommand : ICommand
     public int ClutchRatio { get; set; }
     public int Fkpr { get; set; }
     public int Fdpr { get; set; }
+    public int RoundsPlayed { get; set; }
+    public int TotalDamage { get; set; }
+    public int HeadshotKills { get; set; }
 }

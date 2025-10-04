@@ -30,6 +30,9 @@ internal sealed class UpdateGameStatCommandHandler(
 			command.ClutchRatio,
 			command.Fkpr,
 			command.Fdpr,
+			command.RoundsPlayed,
+			command.TotalDamage,
+			command.HeadshotKills,
 			dateTimeProvider.UtcNow
 		);
 

@@ -12,6 +12,9 @@ public sealed class GameStatResponse
     public int ClutchRatio { get; set; }
     public int Fkpr { get; set; }
     public int Fdpr { get; set; }
+    public int RoundsPlayed { get; set; }
+    public int TotalDamage { get; set; }
+    public int HeadshotKills { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
