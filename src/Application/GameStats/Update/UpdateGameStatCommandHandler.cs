@@ -33,6 +33,10 @@ internal sealed class UpdateGameStatCommandHandler(
 			command.RoundsPlayed,
 			command.TotalDamage,
 			command.HeadshotKills,
+			command.FirstKills,
+			command.FirstDeaths,
+			command.ClutchAttempts,
+			command.ClutchWins,
 			dateTimeProvider.UtcNow
 		);
 

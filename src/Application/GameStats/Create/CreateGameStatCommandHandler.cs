@@ -25,6 +25,10 @@ internal sealed class CreateGameStatCommandHandler(
             command.RoundsPlayed,
             command.TotalDamage,
             command.HeadshotKills,
+            command.FirstKills,
+            command.FirstDeaths,
+            command.ClutchAttempts,
+            command.ClutchWins,
             dateTimeProvider.UtcNow,
             dateTimeProvider.UtcNow
         );

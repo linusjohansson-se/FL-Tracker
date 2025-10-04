@@ -15,6 +15,10 @@ public sealed class GameStatResponse
     public int RoundsPlayed { get; set; }
     public int TotalDamage { get; set; }
     public int HeadshotKills { get; set; }
+    public int FirstKills { get; set; }
+    public int FirstDeaths { get; set; }
+    public int ClutchAttempts { get; set; }
+    public int ClutchWins { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
