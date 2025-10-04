@@ -9,7 +9,7 @@ public sealed class GameStatResponse
     public int Deaths { get; set; }
     public int Adr { get; set; }
     public int HsRatio { get; set; }
-    public int ClutchRatio { get; set; }
+    public double ClutchRatio { get; set; }
     public int Fkpr { get; set; }
     public int Fdpr { get; set; }
     public int RoundsPlayed { get; set; }

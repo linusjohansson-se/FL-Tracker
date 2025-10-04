@@ -17,7 +17,7 @@ public class GameService : IGameService
 
 	private readonly ISender _sender;
 
-	private GameService(IDateTimeProvider dateTimeProvider, ISender sender)
+	public GameService(IDateTimeProvider dateTimeProvider, ISender sender)
 	{
 		_dateTimeProvider = dateTimeProvider;
 		_sender = sender;
@@ -50,30 +50,32 @@ public class GameService : IGameService
 
 			if (attackerSid != 0 && attackerSid != victimSid)
 			{
-				ref var attacker = ref GetOrInit(stats, attackerSid, names);
+				var attacker = GetOrInit(stats, attackerSid, names);
 				attacker.Kills++;
 			}
 
 			if (victimSid != 0)
 			{
-				ref var victim = ref GetOrInit(stats, victimSid, names);
+				var victim = GetOrInit(stats, victimSid, names);
 				victim.Deaths++;
 			}
 			
 			var assisterSid = e.Assister?.SteamID ?? 0UL;
 			if (assisterSid != 0 && assisterSid != attackerSid && assisterSid != victimSid)
 			{
-				ref var assister = ref GetOrInit(stats, assisterSid, names);
+				var assister = GetOrInit(stats, assisterSid, names);
 				assister.Assists++;
 			}
 
 			if (e.Headshot)
 			{
-				ref var attacker = ref GetOrInit(stats, attackerSid, names);
+				var attacker = GetOrInit(stats, attackerSid, names);
 				attacker.HeadshotKills++;
 			}
 			
 		};
+		
+
 			
 		demo.Source1GameEvents.PlayerHurt += e =>
 		{
@@ -90,7 +92,7 @@ public class GameService : IGameService
 			var dmg = e.DmgHealth;
 			if (dmg <= 0) return;
 
-			ref var attacker = ref GetOrInit(stats, attackerSid, names);
+			var attacker = GetOrInit(stats, attackerSid, names);
 			attacker.TotalDamage += dmg;
 		};
 		
@@ -103,7 +105,7 @@ public class GameService : IGameService
 		{
 			foreach (var sid in roundParticipants)
 			{
-				ref var s = ref GetOrInit(stats, sid, names);
+				var s = GetOrInit(stats, sid, names);
 				s.RoundsPlayed++;
 			}
 			roundParticipants.Clear();
@@ -122,7 +124,7 @@ public class GameService : IGameService
 				PlayerId = s.PlayerId,
 				Adr = s.TotalDamage / s.RoundsPlayed,
 				Assists = s.Assists,
-				ClutchRatio = s.ClutchRatio,
+				ClutchRatio = s.ClutchAttempts > 0 ? (double)s.ClutchWins / s.ClutchAttempts : 0.0,
 				Deaths = s.Deaths,
 				Fdpr = s.FirstDeaths/s.RoundsPlayed,
 				Fkpr = s.FirstKills / s.RoundsPlayed,
@@ -171,7 +173,7 @@ public class GameService : IGameService
 		}
 	}
 	
-	static ref GameStatResponse GetOrInit(
+	static GameStatResponse GetOrInit(
 		Dictionary<ulong, GameStatResponse> dict, ulong sid, Dictionary<ulong, string?> names)
 	{
 		if (!dict.TryGetValue(sid, out var s))
@@ -192,6 +194,6 @@ public class GameService : IGameService
 			};
 			dict[sid] = s;
 		}
-		return ref dict[sid];
+		return s;
 	}
 }

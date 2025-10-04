@@ -4,7 +4,7 @@ namespace Domain.GameStats;
 
 public class GameStat : Entity
 {
-    private GameStat(Guid playerId, int kills, int assists, int deaths, int adr, int hsRatio, int clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime createdAt, DateTime updatedAt)
+    private GameStat(Guid playerId, int kills, int assists, int deaths, int adr, int hsRatio, double clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime createdAt, DateTime updatedAt)
     {
         Id = Guid.NewGuid();
         PlayerId = playerId;
@@ -27,7 +27,7 @@ public class GameStat : Entity
         UpdatedAt = updatedAt;
     }
 
-    public static GameStat Create(Guid playerId, int kills, int assists, int deaths, int adr, int hsRatio, int clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime createdAt, DateTime updatedAt)
+    public static GameStat Create(Guid playerId, int kills, int assists, int deaths, int adr, int hsRatio, double clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime createdAt, DateTime updatedAt)
     {
         return new GameStat(playerId, kills, assists, deaths, adr, hsRatio, clutchRatio, fkpr, fdpr, roundsPlayed, totalDamage, headshotKills, firstKills, firstDeaths, clutchAttempts, clutchWins, createdAt, updatedAt);
     }
@@ -46,7 +46,7 @@ public class GameStat : Entity
 
     public int HsRatio { get; private set; }
 
-    public int ClutchRatio { get; private set; }
+    public double ClutchRatio { get; private set; }
 
     public int Fkpr { get; private set; }
 
@@ -70,7 +70,7 @@ public class GameStat : Entity
 
     public DateTime UpdatedAt { get; private set; }
 
-    public void Update(int kills, int assists, int deaths, int adr, int hsRatio, int clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime updatedAt)
+    public void Update(int kills, int assists, int deaths, int adr, int hsRatio, double clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime updatedAt)
     {
         Kills = kills;
         Assists = assists;
