@@ -1,0 +1,16 @@
+using Application.Abstractions.Messaging;
+
+namespace Application.GameStats.Update;
+
+public sealed class UpdateGameStatCommand : ICommand
+{
+    public Guid GameStatId { get; set; }
+    public int Kills { get; set; }
+    public int Assists { get; set; }
+    public int Deaths { get; set; }
+    public int Adr { get; set; }
+    public int HsRatio { get; set; }
+    public int ClutchRatio { get; set; }
+    public int Fkpr { get; set; }
+    public int Fdpr { get; set; }
+}

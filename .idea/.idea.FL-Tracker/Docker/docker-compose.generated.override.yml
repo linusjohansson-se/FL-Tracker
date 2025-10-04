@@ -1,0 +1,38 @@
+# This is a generated file. Not intended for manual editing.
+services:
+  web-api:
+    build:
+      context: "C:\\source\\Företagsligan-Tracker"
+      dockerfile: "src/Web.Api/Dockerfile"
+      target: "base"
+      args:
+        BUILD_CONFIGURATION: "Debug"
+    command: []
+    entrypoint:
+    - "/opt/rider-debugger/linux-x64/JetBrains.Debugger.Worker"
+    - "--runtimeconfig"
+    - "/opt/rider-debugger/JetBrains.Debugger.Worker.runtimeconfig.json"
+    - "--mode=server"
+    - "--frontend-port=57100"
+    - "--backend-port=57300"
+    - "--timeout=60"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      DOTNET_USE_POLLING_FILE_WATCHER: "true"
+      RIDER_DEBUGGER_LOG_DIR: "/var/opt/rider-debugger"
+      RESHARPER_LOG_CONF: "/etc/opt/rider-debugger/backend-log.xml"
+    image: "webapi:dev"
+    ports:
+    - "127.0.0.1:57006:57100"
+    - "127.0.0.1:57206:57300"
+    volumes:
+    - "C:\\Users\\Linus\\AppData\\Roaming\\Microsoft\\UserSecrets:/home/app/.microsoft/usersecrets"
+    - "C:\\Users\\Linus\\.nuget\\packages:/home/app/.nuget/packages"
+    - "C:\\source\\Företagsligan-Tracker\\src\\Web.Api:/app:rw"
+    - "C:\\source\\Företagsligan-Tracker:/src:rw"
+    - "C:\\Users\\Linus\\AppData\\Local\\JetBrains\\RiderRemoteDebugger\\2024.2.7\\\
+      Linux64:/opt/rider-debugger"
+    - "C:\\Program Files\\JetBrains\\JetBrains Rider 2024.2.7\\bin:/etc/opt/rider-debugger/backend-log.xml"
+    - "C:\\Users\\Linus\\AppData\\Local\\JetBrains\\Rider2024.2\\log\\DebuggerWorker\\\
+      JetBrains.Debugger.Worker.2025_10_04_18_36_10:/var/opt/rider-debugger:rw"
+    working_dir: "/app"
