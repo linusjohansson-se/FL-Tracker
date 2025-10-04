@@ -80,11 +80,9 @@ public class GameService : IGameService
 			var victimSid   = e.Player?.SteamID ?? 0UL;
 			var attackerSid = e.Attacker?.SteamID ?? 0UL;
 
-			// mark participation
 			if (victimSid != 0)  roundParticipants.Add(victimSid);
 			if (attackerSid != 0) roundParticipants.Add(attackerSid);
 
-			// ignore self damage and team damage (if team info is available)
 			if (attackerSid == 0 || attackerSid == victimSid) return;
 
 			if (victimSid != 0 && e.Attacker.Team == e.Player.Team) return;
@@ -114,12 +112,11 @@ public class GameService : IGameService
 		var reader = DemoFileReader.Create(demo, file);
 		await reader.ReadAllAsync();
 
-		// Persist players and their stats
 		foreach (var (steamId, s) in stats)
 		{
 			var playerId = await GetOrCreatePlayerAsync(steamId.ToString(), names.GetValueOrDefault(steamId));
-			// Save stats (adapt to your domain types)
 			s.PlayerId = playerId.Value;
+			
 			var save = await _sender.Send(new CreateGameStatCommand
 			{
 				PlayerId = s.PlayerId,
@@ -127,13 +124,17 @@ public class GameService : IGameService
 				Assists = s.Assists,
 				ClutchRatio = s.ClutchRatio,
 				Deaths = s.Deaths,
-				Fdpr = s.Fdpr,
-				Fkpr = s.Fkpr,
+				Fdpr = s.FirstDeaths/s.RoundsPlayed,
+				Fkpr = s.FirstKills / s.RoundsPlayed,
 				HsRatio = s.HeadshotKills / s.Kills,
 				Kills = s.Kills,
 				RoundsPlayed = s.RoundsPlayed,
 				TotalDamage = s.TotalDamage,
-				HeadshotKills = s.HeadshotKills
+				HeadshotKills = s.HeadshotKills,
+				ClutchAttempts = s.ClutchAttempts,
+				ClutchWins = s.ClutchWins,
+				FirstKills = s.FirstKills,
+				FirstDeaths = s.FirstDeaths,
 			});
 			if (save.IsFailure) return new Result(false, save.Error);
 		}
@@ -183,7 +184,11 @@ public class GameService : IGameService
 				Assists = 0,
 				RoundsPlayed = 0,
 				TotalDamage = 0,
-				HeadshotKills = 0
+				HeadshotKills = 0,
+				ClutchAttempts = 0,
+				ClutchWins = 0,
+				FirstDeaths = 0,
+				FirstKills = 0
 			};
 			dict[sid] = s;
 		}
