@@ -26,6 +26,7 @@ internal sealed class UpdateGameCommandHandler(
 			command.TeamAScore,
 			command.TeamBScore,
 			command.Winner,
+			command.MatchId,
 			dateTimeProvider.UtcNow
 		);
 

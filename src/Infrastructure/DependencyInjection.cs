@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Application.Abstractions.Data;
+using Application.Jobs;
 using Infrastructure.Database;
 using Infrastructure.Time;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -24,8 +25,18 @@ public static class DependencyInjection
             .AddDatabase(configuration)
             .AddHealthChecks(configuration)
             .AddAuthorizationInternal()
-            .AddQuartz(options =>
+            .AddQuartz(q =>
             {
+                q.UseMicrosoftDependencyInjectionJobFactory();
+
+                var jobKey = new JobKey("MatchSyncJob");
+                q.AddJob<MatchSyncJob>(opts => opts.WithIdentity(jobKey));
+
+                var cronSchedule = configuration["Quartz:MatchSyncJob:CronSchedule"] ?? "0 0 * * * ?";
+                q.AddTrigger(opts => opts
+                    .ForJob(jobKey)
+                    .WithIdentity("MatchSyncJob-trigger")
+                    .WithCronSchedule(cronSchedule));
             })
             .AddQuartzHostedService();
 

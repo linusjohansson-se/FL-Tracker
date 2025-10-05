@@ -21,6 +21,7 @@ internal sealed class CreateGameCommandHandler(
             command.TeamAScore,
             command.TeamBScore,
             command.Winner,
+            command.MatchId,
             dateTimeProvider.UtcNow,
             dateTimeProvider.UtcNow
         );

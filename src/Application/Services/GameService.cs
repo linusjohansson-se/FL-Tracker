@@ -1,10 +1,10 @@
+using Application.Games.Create;
 using Application.GameStats.Create;
 using Application.GameStats.GetById;
 using Application.Players.Create;
 using Application.Players.GetBySteamId;
 using DemoFile;
 using DemoFile.Game.Cs;
-using Domain.Players;
 using Domain.Services;
 using MediatR;
 using SharedKernel;
@@ -22,113 +22,208 @@ public class GameService : IGameService
 		_dateTimeProvider = dateTimeProvider;
 		_sender = sender;
 	}
+	
+	
 
 	public async Task<Result> ProcessGameAsync(FileStream file)
 	{
-		var demo = new CsDemoParser();
+		CsDemoParser demo = new CsDemoParser();
 
-		var roundParticipants = new HashSet<ulong>();
-		var stats = new Dictionary<ulong, GameStatResponse>();
-		var names  = new Dictionary<ulong, string?>();
+		HashSet<ulong> roundParticipants = new HashSet<ulong>();
+		Dictionary<ulong, GameStatResponse> stats = new Dictionary<ulong, GameStatResponse>();
+		Dictionary<ulong, string?> names = new Dictionary<ulong, string?>();
+		HashSet<CCSTeam> teams = new HashSet<CCSTeam>();
+		var gameDate = _dateTimeProvider.UtcNow;
+		string map = String.Empty;
+		string matchId = string.Empty;
+		
+		void CaptureName(CCSPlayerController? pc)
+		{
+			if (pc == null) return;
+			
+			ulong sid = pc.SteamID;
+			if (sid == 0) return;
 
+			var nick = pc.PlayerName;
+			if (!string.IsNullOrWhiteSpace(nick))
+				names[sid] = nick;
+			else if (!names.ContainsKey(sid))
+				names[sid] = nick; // may be empty early; OK as placeholder
+		}
+		
+		void ResetForNewMatch()
+		{
+			Console.WriteLine("== New match detected: clearing aggregates ==");
+			stats.Clear();
+			teams.Clear();
+			Console.WriteLine("Time " +demo.CurrentGameTime.Value);
+			matchId = demo.FileHeader.DemoFileStamp;
+			map = demo.ServerInfo.MapName;
+			Console.WriteLine("Match Id: " + matchId);
+		}
+
+		demo.Source1GameEvents.BeginNewMatch += _ => ResetForNewMatch();
+		
 		demo.Source1GameEvents.PlayerConnect += e =>
 		{
-			if (e.SteamId is { } sid)
-				names[sid] = e.Name;
+			CaptureName(e.Player);
 		};
 		demo.Source1GameEvents.PlayerInfo += e =>
 		{
-			if (e.Player?.SteamID is { } sid)
-				names[sid] = e.Player.PlayerName;
+			CaptureName(e.Player);
 		};
-		
-		
+
+
 		demo.Source1GameEvents.PlayerDeath += e =>
 		{
-			var victimSid   = e.Player?.SteamID ?? 0UL;
-			var attackerSid = e.Attacker?.SteamID ?? 0UL;
+			ulong victimSid = e.Player?.SteamID ?? 0UL;
+			ulong attackerSid = e.Attacker?.SteamID ?? 0UL;
+			
+			CaptureName(e.Player);
+			CaptureName(e.Attacker);
+			CaptureName(e.Assister);
 
 			if (attackerSid != 0 && attackerSid != victimSid)
 			{
-				var attacker = GetOrInit(stats, attackerSid, names);
+				GameStatResponse attacker = GetOrInit(stats, attackerSid, names);
 				attacker.Kills++;
 			}
 
 			if (victimSid != 0)
 			{
-				var victim = GetOrInit(stats, victimSid, names);
+				GameStatResponse victim = GetOrInit(stats, victimSid, names);
 				victim.Deaths++;
 			}
-			
-			var assisterSid = e.Assister?.SteamID ?? 0UL;
+
+			ulong assisterSid = e.Assister?.SteamID ?? 0UL;
 			if (assisterSid != 0 && assisterSid != attackerSid && assisterSid != victimSid)
 			{
-				var assister = GetOrInit(stats, assisterSid, names);
+				GameStatResponse assister = GetOrInit(stats, assisterSid, names);
 				assister.Assists++;
 			}
 
 			if (e.Headshot)
 			{
-				var attacker = GetOrInit(stats, attackerSid, names);
+				GameStatResponse attacker = GetOrInit(stats, attackerSid, names);
 				attacker.HeadshotKills++;
 			}
-			
 		};
-		
 
-			
+
 		demo.Source1GameEvents.PlayerHurt += e =>
 		{
-			var victimSid   = e.Player?.SteamID ?? 0UL;
-			var attackerSid = e.Attacker?.SteamID ?? 0UL;
-
-			if (victimSid != 0)  roundParticipants.Add(victimSid);
-			if (attackerSid != 0) roundParticipants.Add(attackerSid);
-
-			if (attackerSid == 0 || attackerSid == victimSid) return;
-
-			if (victimSid != 0 && e.Attacker.Team == e.Player.Team) return;
+			ulong victimSid = e.Player?.SteamID ?? 0UL;
+			ulong attackerSid = e.Attacker?.SteamID ?? 0UL;
 			
-			var dmg = e.DmgHealth;
-			if (dmg <= 0) return;
+			CaptureName(e.Player);
+			CaptureName(e.Attacker);
+			
 
-			var attacker = GetOrInit(stats, attackerSid, names);
+			if (attackerSid == 0 || attackerSid == victimSid)
+			{
+				return;
+			}
+
+			if (victimSid != 0 && e.Attacker.Team == e.Player.Team)
+			{
+				return;
+			}
+
+			int dmg = e.DmgHealth;
+			if (dmg <= 0)
+			{
+				return;
+			}
+
+			GameStatResponse attacker = GetOrInit(stats, attackerSid, names);
 			attacker.TotalDamage += dmg;
 		};
-		
+
 		demo.Source1GameEvents.RoundStart += _ =>
 		{
-			roundParticipants.Clear();
-		};
-		
-		demo.Source1GameEvents.RoundEnd += _ =>
-		{
-			foreach (var sid in roundParticipants)
+			if (!teams.Where(t => t.Score > 0).Any() && demo.GameRules.TotalRoundsPlayed == 0)
 			{
-				var s = GetOrInit(stats, sid, names);
-				s.RoundsPlayed++;
+				ResetForNewMatch();
 			}
 			roundParticipants.Clear();
-		};
-		
-		var reader = DemoFileReader.Create(demo, file);
-		await reader.ReadAllAsync();
-
-		foreach (var (steamId, s) in stats)
-		{
-			var playerId = await GetOrCreatePlayerAsync(steamId.ToString(), names.GetValueOrDefault(steamId));
-			s.PlayerId = playerId.Value;
 			
-			var save = await _sender.Send(new CreateGameStatCommand
+			Console.WriteLine($"----------------------------------");
+			Console.WriteLine($"Round {demo.GameRules.TotalRoundsPlayed + 1} starting");
+			Console.WriteLine($"----------------------------------");
+			
+			foreach (var inDemoPlayer in demo.Players)
+			{ 
+				CaptureName(inDemoPlayer);
+				roundParticipants.Add(inDemoPlayer.SteamID);
+				if (inDemoPlayer.Team.Teamname != "Unassigned")
+				{
+					teams.Add(inDemoPlayer.Team);	
+				}
+			}
+		};
+
+		demo.Source1GameEvents.RoundEnd += _ =>
+		{
+			foreach (ulong sid in roundParticipants)
+			{
+				GameStatResponse s = GetOrInit(stats, sid, names);
+				s.RoundsPlayed++;
+			}
+			
+			roundParticipants.Clear();
+			
+			Console.WriteLine($"----------------------------------");
+			Console.WriteLine("Round ended");
+			Console.WriteLine($"----------------------------------");
+			Console.WriteLine($"Current score:");
+			foreach (var team in teams)
+			{
+				Console.WriteLine($"Team: {team.ClanTeamname} - {team.Teamname}");
+				Console.WriteLine($"Score: {team.Score}");
+			}
+			Console.WriteLine($"----------------------------------");
+			
+		};
+
+		DemoFileReader<CsDemoParser> reader = DemoFileReader.Create(demo, file);
+		await reader.ReadAllAsync();
+		
+		var teamList = teams.ToList();
+		var game = await _sender.Send(new CreateGameCommand
+		{
+			Date = gameDate,
+			TeamA = null,
+			TeamB = null,
+			TeamAName = teamList[0].Teamname,
+			TeamBName = teamList[1].Teamname,
+			TeamAScore = teamList[0].Score,
+			TeamBScore = teamList[1].Score,
+			Winner = null,
+			MatchId = matchId
+		});
+
+		if (game.IsFailure)
+		{
+			return new Result(false, game.Error);
+		}
+
+		foreach ((ulong steamId, GameStatResponse s) in stats)
+		{
+			Result<Guid> playerId = await GetOrCreatePlayerAsync(steamId.ToString(), names.GetValueOrDefault(steamId));
+			s.PlayerId = playerId.Value;
+
+			double hsRatio = (double)s.HeadshotKills / (double)s.Kills;
+			
+			Result<Guid> save = await _sender.Send(new CreateGameStatCommand
 			{
 				PlayerId = s.PlayerId,
-				Adr = s.TotalDamage / s.RoundsPlayed,
+				Adr = (double)s.TotalDamage / (double)s.RoundsPlayed,
 				Assists = s.Assists,
-				ClutchRatio = s.ClutchAttempts > 0 ? (double)s.ClutchWins / s.ClutchAttempts : 0.0,
+				ClutchRatio = (double)s.ClutchAttempts > 0 ? (double)s.ClutchWins / (double)s.ClutchAttempts : 0.0,
 				Deaths = s.Deaths,
-				Fdpr = s.FirstDeaths/s.RoundsPlayed,
-				Fkpr = s.FirstKills / s.RoundsPlayed,
-				HsRatio = s.HeadshotKills / s.Kills,
+				Fdpr = (double)s.FirstDeaths / (double)s.RoundsPlayed,
+				Fkpr = (double)s.FirstKills / (double)s.RoundsPlayed,
+				HsRatio = hsRatio,
 				Kills = s.Kills,
 				RoundsPlayed = s.RoundsPlayed,
 				TotalDamage = s.TotalDamage,
@@ -137,10 +232,14 @@ public class GameService : IGameService
 				ClutchWins = s.ClutchWins,
 				FirstKills = s.FirstKills,
 				FirstDeaths = s.FirstDeaths,
+				GameId = game.Value
 			});
-			if (save.IsFailure) return new Result(false, save.Error);
+			if (save.IsFailure)
+			{
+				return new Result(false, save.Error);
+			}
 		}
-		
+
 		return new Result(true, Error.None);
 	}
 
@@ -151,7 +250,7 @@ public class GameService : IGameService
 
 		if (stored_player.IsFailure)
 		{
-			var created_player = await _sender.Send(new CreatePlayerCommand
+			Result<Guid> created_player = await _sender.Send(new CreatePlayerCommand
 			{
 				TeamId = null,
 				SteamId = steamId,
@@ -167,16 +266,14 @@ public class GameService : IGameService
 
 			return created_player.Value;
 		}
-		else
-		{
-			return stored_player.Value.Id;
-		}
+
+		return stored_player.Value.Id;
 	}
-	
-	static GameStatResponse GetOrInit(
+
+	private static GameStatResponse GetOrInit(
 		Dictionary<ulong, GameStatResponse> dict, ulong sid, Dictionary<ulong, string?> names)
 	{
-		if (!dict.TryGetValue(sid, out var s))
+		if (!dict.TryGetValue(sid, out GameStatResponse? s))
 		{
 			s = new GameStatResponse
 			{
@@ -194,6 +291,8 @@ public class GameService : IGameService
 			};
 			dict[sid] = s;
 		}
+
 		return s;
 	}
+	
 }

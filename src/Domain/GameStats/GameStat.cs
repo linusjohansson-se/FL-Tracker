@@ -4,10 +4,11 @@ namespace Domain.GameStats;
 
 public class GameStat : Entity
 {
-    private GameStat(Guid playerId, int kills, int assists, int deaths, int adr, int hsRatio, double clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime createdAt, DateTime updatedAt)
+    private GameStat(Guid playerId, Guid gameId, int kills, int assists, int deaths, double adr, double hsRatio, double clutchRatio, double fkpr, double fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime createdAt, DateTime updatedAt)
     {
         Id = Guid.NewGuid();
         PlayerId = playerId;
+        GameId = gameId;
         Kills = kills;
         Assists = assists;
         Deaths = deaths;
@@ -27,14 +28,16 @@ public class GameStat : Entity
         UpdatedAt = updatedAt;
     }
 
-    public static GameStat Create(Guid playerId, int kills, int assists, int deaths, int adr, int hsRatio, double clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime createdAt, DateTime updatedAt)
+    public static GameStat Create(Guid playerId, Guid gameId, int kills, int assists, int deaths, double adr, double hsRatio, double clutchRatio, double fkpr, double fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime createdAt, DateTime updatedAt)
     {
-        return new GameStat(playerId, kills, assists, deaths, adr, hsRatio, clutchRatio, fkpr, fdpr, roundsPlayed, totalDamage, headshotKills, firstKills, firstDeaths, clutchAttempts, clutchWins, createdAt, updatedAt);
+        return new GameStat(playerId, gameId, kills, assists, deaths, adr, hsRatio, clutchRatio, fkpr, fdpr, roundsPlayed, totalDamage, headshotKills, firstKills, firstDeaths, clutchAttempts, clutchWins, createdAt, updatedAt);
     }
 
     public Guid Id { get; private set; }
 
     public Guid PlayerId { get; private set; }
+
+    public Guid GameId { get; private set; }
 
     public int Kills { get; private set; }
 
@@ -42,15 +45,15 @@ public class GameStat : Entity
 
     public int Deaths { get; private set; }
 
-    public int Adr { get; private set; }
+    public double Adr { get; private set; }
 
-    public int HsRatio { get; private set; }
+    public double HsRatio { get; private set; }
 
     public double ClutchRatio { get; private set; }
 
-    public int Fkpr { get; private set; }
+    public double Fkpr { get; private set; }
 
-    public int Fdpr { get; private set; }
+    public double Fdpr { get; private set; }
 
     public int RoundsPlayed { get; private set; }
 
@@ -70,7 +73,7 @@ public class GameStat : Entity
 
     public DateTime UpdatedAt { get; private set; }
 
-    public void Update(int kills, int assists, int deaths, int adr, int hsRatio, double clutchRatio, int fkpr, int fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime updatedAt)
+    public void Update(int kills, int assists, int deaths, double adr, double hsRatio, double clutchRatio, double fkpr, double fdpr, int roundsPlayed, int totalDamage, int headshotKills, int firstKills, int firstDeaths, int clutchAttempts, int clutchWins, DateTime updatedAt)
     {
         Kills = kills;
         Assists = assists;

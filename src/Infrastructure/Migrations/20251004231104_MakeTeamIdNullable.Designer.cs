@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251004231104_MakeTeamIdNullable")]
+    partial class MakeTeamIdNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,8 +33,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<double>("Adr")
-                        .HasColumnType("double precision")
+                    b.Property<int>("Adr")
+                        .HasColumnType("integer")
                         .HasColumnName("adr");
 
                     b.Property<int>("Assists")
@@ -58,8 +61,8 @@ namespace Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("deaths");
 
-                    b.Property<double>("Fdpr")
-                        .HasColumnType("double precision")
+                    b.Property<int>("Fdpr")
+                        .HasColumnType("integer")
                         .HasColumnName("fdpr");
 
                     b.Property<int>("FirstDeaths")
@@ -70,20 +73,16 @@ namespace Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("first_kills");
 
-                    b.Property<double>("Fkpr")
-                        .HasColumnType("double precision")
+                    b.Property<int>("Fkpr")
+                        .HasColumnType("integer")
                         .HasColumnName("fkpr");
-
-                    b.Property<Guid>("GameId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("game_id");
 
                     b.Property<int>("HeadshotKills")
                         .HasColumnType("integer")
                         .HasColumnName("headshot_kills");
 
-                    b.Property<double>("HsRatio")
-                        .HasColumnType("double precision")
+                    b.Property<int>("HsRatio")
+                        .HasColumnType("integer")
                         .HasColumnName("hs_ratio");
 
                     b.Property<int>("Kills")
@@ -127,13 +126,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("date");
 
-                    b.Property<string>("MatchId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("match_id");
-
-                    b.Property<Guid?>("TeamA")
-                        .IsRequired()
+                    b.Property<Guid>("TeamA")
                         .HasColumnType("uuid")
                         .HasColumnName("team_a");
 
@@ -147,8 +140,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("team_a_score");
 
-                    b.Property<Guid?>("TeamB")
-                        .IsRequired()
+                    b.Property<Guid>("TeamB")
                         .HasColumnType("uuid")
                         .HasColumnName("team_b");
 
@@ -166,8 +158,7 @@ namespace Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
-                    b.Property<Guid?>("Winner")
-                        .IsRequired()
+                    b.Property<Guid>("Winner")
                         .HasColumnType("uuid")
                         .HasColumnName("winner");
 

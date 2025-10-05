@@ -17,6 +17,7 @@ internal sealed class GetGameStatByIdQueryHandler(IApplicationDbContext context)
 			{
 				Id = gs.Id,
 				PlayerId = gs.PlayerId,
+				GameId = gs.GameId,
 				Kills = gs.Kills,
 				Assists = gs.Assists,
 				Deaths = gs.Deaths,

@@ -19,8 +19,7 @@ builder.Services.AddSwaggerGenWithAuth();
 builder.Services
     .AddApplication()
     .AddPresentation()
-    .AddInfrastructure(builder.Configuration)
-    .AddQuartzHostedService();
+    .AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<IGameService, GameService>();
 

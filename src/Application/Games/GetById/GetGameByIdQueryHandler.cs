@@ -24,6 +24,7 @@ internal sealed class GetGameByIdQueryHandler(IApplicationDbContext context)
 				TeamAScore = g.TeamAScore,
 				TeamBScore = g.TeamBScore,
 				Winner = g.Winner,
+				MatchId = g.MatchId,
 				CreatedAt = g.CreatedAt,
 				UpdatedAt = g.UpdatedAt
 			})

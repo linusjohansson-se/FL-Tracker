@@ -14,6 +14,7 @@ internal sealed class CreateGameStatCommandHandler(
     {
         var gameStat = GameStat.Create(
             command.PlayerId,
+            command.GameId,
             command.Kills,
             command.Assists,
             command.Deaths,

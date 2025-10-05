@@ -19,7 +19,7 @@ internal sealed class PlayerConfiguration : IEntityTypeConfiguration<Player>
             .HasMaxLength(100);
 
         builder.Property(p => p.TeamId)
-            .IsRequired();
+            .IsRequired(false);
 
         builder.Property(p => p.LeetifyId)
             .HasMaxLength(100);
